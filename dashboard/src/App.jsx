@@ -190,9 +190,9 @@ export default function App() {
           <div className="mt-2 p-2 bg-zinc-900 rounded min-h-[200px] overflow-auto">{
             map && <MapCanvas map={map} />
           }</div>
-          <div className="mt-2 text-xs text-zinc-400">Legend:</div>
+          <div className="mt-2 text-xs text-zinc-400">Biome:</div>
           <div className="mt-1 text-xs text-zinc-300 whitespace-pre-line">
-            {  tile  }</div>
+            {  player?.biome  }</div>
         </section>
 
         <section className="col-span-1 bg-zinc-800 p-4 rounded shadow-sm flex flex-col">

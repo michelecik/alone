@@ -11,7 +11,7 @@ export function showMap(player, wss) {
     // Costo in stamina per usare la mappa
     player.stamina = Math.max(player.stamina - 5, 0);
 
-    const mapSize = 6; // mappa 20x20 intorno al player
+    const mapSize = 50; // mappa 20x20 intorno al player
     const half = Math.floor(mapSize / 2);
 
     const tiles = []; // questa volta inviamo OGGETTI, non testo
@@ -23,8 +23,6 @@ export function showMap(player, wss) {
 
             const biome = getBiome(x, y);
             const height = getHeight(x, y);
-
-            player.biome = biome
 
             row.push({
                 x,
@@ -46,7 +44,7 @@ export function showMap(player, wss) {
                     type: "map",
                     tiles,
                     center: { x: player.x, y: player.y },
-                    tileSize: 30,      // px lato cella (frontend lo può ignorare)
+                    tileSize: 10,      // px lato cella (frontend lo può ignorare)
                     regionSize: 6       // utile per evidenziare regioni
                 })
             );

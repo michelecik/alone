@@ -22,8 +22,6 @@ export default function MapCanvas({ map }) {
 
                 // --- Terrain color ---
                 ctx.fillStyle = getTerrainColor(cell.biome);
-                console.log(cell.biome);
-                
                 ctx.fillRect(px, py, tileSize, tileSize);
 
                 if (cell.isPlayer) {
@@ -104,14 +102,16 @@ export default function MapCanvas({ map }) {
 function getTerrainColor(type) {
 
     switch (type) {
-        case "plain": return '#b39c4d'
+        case "plain": return '#a2c244'
         case "forest": return "#607744";
         case "desert": return "#c8ab59";
-        case "lake": return "#372772";
-        case "mountain": return "#F4F3EE";
+        case "lake": return "#ddeaf5";
+        case "deepWaters": return "#6ea1e6";
+        case "mountain": return "#e59949";
         case "ruins": return "#333333";
-        case "swamp": return "#384D48"
-        case "hills": return "#474B24"
+        case "beach": return "#c8ab59"
+        case "hills": return "#959e39"
+        case "peak": return "#b5ad9a"
         default: return "#fafafa";
     }
 }
