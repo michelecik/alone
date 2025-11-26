@@ -1,7 +1,18 @@
 // movement.js
-import { generateTile, worldLoot } from "./map.js";
+import { worldLoot } from "./map.js";
 import { getTileKey } from "../utils/colors.js";
 import { LOOT_CHANCE, LOOT_ITEMS, WOUND_CHANCE } from "../utils/constants.js";
+import { getBiome, getHeight } from "../utils/random.js";
+
+export function getTileInfo(x, y) {
+    return {
+        x,
+        y,
+        height: getHeight(x, y),
+        biome: getBiome(x, y)
+        // qui puoi aggiungere altri campi in futuro
+    };
+}
 
 export function movePlayer(player, direction, ws) {
     const dirs = {
@@ -15,6 +26,10 @@ export function movePlayer(player, direction, ws) {
 
     const [dx, dy] = dirs[direction];
     player.move(dx, dy);
+
+    const tile = getTileInfo(player.x, player.y);
+    player.biome = tile.biome;
+    player.height = tile.height;
 
     const key = getTileKey(player.x, player.y);
     const eventChance = Math.random();
@@ -30,7 +45,7 @@ export function movePlayer(player, direction, ws) {
         }
 
         worldLoot[key].push({ name: itemName });
-        
+
 
         ws.send(JSON.stringify({
             type: "event",
@@ -49,7 +64,7 @@ export function movePlayer(player, direction, ws) {
     ws.send(JSON.stringify({
         type: "update",
         player: player,
-        tile: generateTile(player.x, player.y),
+        tile: '',
         event
     }));
 

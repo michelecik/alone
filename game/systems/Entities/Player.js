@@ -27,4 +27,5 @@ export default class Player {
     damage(amount) {
         this.hp = Math.max(this.hp - amount, 0);
     }
+    
 }

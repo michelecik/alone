@@ -2,31 +2,13 @@
 import { WebSocketServer } from "ws";
 import { playerSymbol, resetColor, terrainColors, getTileKey } from "./game/utils/colors.js";
 import Player from "./game/systems/Entities/Player.js";
-import { generateTile, showMap, worldLoot } from "./game/systems/map.js";
-import { movePlayer } from "./game/systems/movement.js";
+import { showMap, worldLoot } from "./game/systems/map.js";
+import { getTileInfo, movePlayer } from "./game/systems/movement.js";
 import { loot, pickup } from "./game/systems/loot.js";
 
 const wss = new WebSocketServer({ port: 8080 });
 
 console.log("Game server running on ws://localhost:8080");
-
-// generatore di mappa procedurale base
-// Oggetto globale per memorizzare le tile già generate
-const mapTiles = {}; // key = "x,y", value = tipo terreno
-
-const terrainTypes = ["plain", "forest", "mountain", "ruins", "lake", "swamp", "desert", "hills"];
-const terrainWeights = {
-    plain: 35,
-    forest: 20,
-    mountain: 15,
-    ruins: 10,
-    lake: 5,
-    swamp: 5,
-    desert: 5,
-    hills: 5
-};
-
-
 
 const players = {};
 
@@ -36,12 +18,17 @@ wss.on("connection", ws => {
     const player = new Player(id, 'Cepes');
     players[id] = player;
 
+    const tile = getTileInfo(player.x, player.y);
+    player.biome = tile.biome;
+
     ws.send(JSON.stringify({
         type: "welcome",
         playerId: id,
         player: player,
-        tile: generateTile(player.x, player.y)
+        tile: ''
     }));
+
+    showMap(player, wss)
 
     ws.on("message", msg => {
         const data = msg.toString().trim();
@@ -113,18 +100,6 @@ wss.on("connection", ws => {
         /*  if (data === "map") {
              showMap(player, ws)
          } */
-
-
-        if (data === "scan") {
-            const around = {};
-            const dirs = { N: [0, -1], S: [0, 1], E: [1, 0], W: [-1, 0] };
-            for (const k in dirs) {
-                const [dx, dy] = dirs[k];
-                around[k] = generateTile(player.x + dx, player.y + dy);
-            }
-
-            ws.send(JSON.stringify({ type: "scan", around }));
-        }
 
         if (data === "status") {
             ws.send(JSON.stringify({

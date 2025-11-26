@@ -1,107 +1,62 @@
 import { playerSymbol, resetColor, terrainColors, getTileKey } from "../utils/colors.js";
+import { getBiome, getHeight } from "../utils/random.js";
 
 
 const worldLoot = {};
-
-// generatore di mappa procedurale base
-// Oggetto globale per memorizzare le tile già generate
 const mapTiles = {}; // key = "x,y", value = tipo terreno
-
-const terrainTypes = ["plain", "forest", "mountain", "ruins", "lake", "swamp", "desert", "hills"];
-const terrainWeights = {
-    plain: 35,
-    forest: 20,
-    mountain: 15,
-    ruins: 10,
-    lake: 5,
-    swamp: 5,
-    desert: 5,
-    hills: 5
-};
-
-// Generatore di tile con blocchi minimi 2x2
-function generateTile(x, y) {
-    const key = `${x},${y}`;
-    if (mapTiles[key]) return mapTiles[key]; // già generata
-
-    // Controlliamo tile a sinistra e sopra
-    const left = mapTiles[`${x - 1},${y}`];
-    const top = mapTiles[`${x},${y - 1}`];
-
-    let terrain = null;
-
-    // Probabilità di continuare il terreno precedente (blocchi continui)
-    if (left && Math.random() < 0.7) terrain = left;
-    else if (top && Math.random() < 0.7) terrain = top;
-    else {
-        // Scegli in base alle probabilità generali
-        let rnd = Math.random() * 100;
-        let sum = 0;
-        for (const t of terrainTypes) {
-            sum += terrainWeights[t];
-            if (rnd < sum) { terrain = t; break; }
-        }
-    }
-
-    mapTiles[key] = terrain;
-    return terrain;
-}
 
 
 export function showMap(player, wss) {
 
-   /*  if (player.stamina <= 0) {
-        ws.send(
-            JSON.stringify({
-                type: "event",
-                message: "Not enough stamina to use map!"
-            }));
-        return;
-    } */
-
-    // costo della mappa
+    // Costo in stamina per usare la mappa
     player.stamina = Math.max(player.stamina - 5, 0);
 
-    const mapSize = 20; // 5x5 intorno al giocatore
-    let output = "";
+    const mapSize = 6; // mappa 20x20 intorno al player
+    const half = Math.floor(mapSize / 2);
 
-    for (let y = player.y - Math.floor(mapSize / 2); y <= player.y + Math.floor(mapSize / 2); y++) {
-        let row = "";
-        for (let x = player.x - Math.floor(mapSize / 2); x <= player.x + Math.floor(mapSize / 2); x++) {
-            if (x === player.x && y === player.y) {
-                row += playerSymbol + " "; // il giocatore
-            } else {
-                let terrain = generateTile(x, y);
-                let symbol = '◼' // terrain.charAt(0).toUpperCase();
-                row += terrainColors[terrain] + symbol + resetColor + " ";
-            }
+    const tiles = []; // questa volta inviamo OGGETTI, non testo
+
+    for (let y = player.y - half; y <= player.y + half; y++) {
+        const row = [];
+
+        for (let x = player.x - half; x <= player.x + half; x++) {
+
+            const biome = getBiome(x, y);
+            const height = getHeight(x, y);
+
+            player.biome = biome
+
+            row.push({
+                x,
+                y,
+                biome,
+                height,
+                isPlayer: (x === player.x && y === player.y)
+            });
         }
-        output += row + "\n";
+        
+        tiles.push(row);
     }
 
-
-    
-    // invio al client
+    // Trasmettiamo la mappa strutturata
     wss.clients.forEach(client => {
         if (client.readyState === 1) {
             client.send(
-                JSON.stringify(
-                    {
-                        type: "map",
-                        map: output
-                    }
-                )
+                JSON.stringify({
+                    type: "map",
+                    tiles,
+                    center: { x: player.x, y: player.y },
+                    tileSize: 30,      // px lato cella (frontend lo può ignorare)
+                    regionSize: 6       // utile per evidenziare regioni
+                })
             );
         }
-    })
-
-    // invio legenda
-    // let legend = Object.entries(terrainColors).map(([t, c]) => `${c}${t.charAt(0).toUpperCase()}${resetColor}=${t}`).join("  ");
-    // ws.send(JSON.stringify({ type: "legend", legend }));
+    });
 }
 
 
+
 export {
-    generateTile,
+    mapTiles,
     worldLoot
 }
